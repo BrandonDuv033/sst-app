@@ -1,30 +1,31 @@
-import { createContext, useState, useContext } from "react";
-
+import { createContext, useContext, useEffect, useState } from "react";
 import { authService } from "../services/authService";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
-  const login = async (email, password) => {
-    const loggedUser = await authService.login(email, password);
+  useEffect(() => {
+    authService.sesionActual().then(setUser).catch(() => setUser(null)).finally(() => setCargando(false));
+  }, []);
 
-    setUser(loggedUser);
+  const login = async (email, password) => setUser(await authService.login(email, password));
+
+  const register = async (datos) => {
+    const nuevo = await authService.registrarUsuario(datos);
+    setUser(nuevo);
+    return nuevo;
   };
 
-  const register = async (userData) => {
-    const newUser = await authService.registrarUsuario(userData);
-
-    setUser(newUser);
-  };
-
-  const logout = () => {
+  const logout = async () => {
+    await authService.logout();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, cargando, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
