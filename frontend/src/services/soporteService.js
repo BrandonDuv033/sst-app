@@ -55,4 +55,13 @@ export const soporteService = {
 
     return data;
   },
+
+  async asignar(id, tecnicoId, prioridad) {
+    const { error } = await supabase
+      .from("soportes")
+      .update({ tecnico_id: tecnicoId, prioridad })
+      .eq("id", id);
+
+    if (error) throw new Error(error.message);
+  },
 };
